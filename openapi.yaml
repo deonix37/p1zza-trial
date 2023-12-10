@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Заказы
+  version: 1.0.0
+servers:
+  - url: http://localhost
+tags:
+  - name: Заказы
+paths:
+  /orders:
+    post:
+      tags:
+        - Заказы
+      summary: Создание нового заказа
+      description: .`order_id` - Уникальный id заказа, является строкой длиной от 3-х до 15 символов
+        `items` - Список товаров в заказе, массив из чисел от 1 до 5000, не может быть пустым
+        `done` - Статус готовности заказа. После перевода в статус `done`=true с заказом нельзя производить никаких операций
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: integer
+                  example:
+                    [1, 2, 3, 3]
+              required:
+                - items
+        required: true
+      responses:
+        '201':
+          description: Создано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      type: integer
+                    example:
+                      [1, 2, 3, 3]
+                  done:
+                    type: boolean
+        '400':
+          description: Неверные данные
+    get:
+      tags:
+        - Заказы
+      summary: Список всех заказов
+      description: Также может быть передан необязательный параметр `done` который фильтрует заказы по данному полю, если параметр не передан, то выводятся все заказы. Данный метод защищен ключом.
+      parameters:
+        - in: query
+          name: done
+          schema:
+            type: boolean
+        - in: header
+          name: X-Auth-Key
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                  done:
+                    type: boolean
+        '400':
+          description: Неверные данные
+  /orders/{order_id}/items:
+    post:
+      tags:
+        - Заказы
+      summary: Добавление товаров в созданный заказ
+      description: Заказ не должен быть в статусе `done` = false
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        required: true
+      responses:
+        '204':
+          description: Успешно
+        '400':
+          description: Неверные данные
+        '404':
+          description: Заказ не найден
+  /orders/{order_id}:
+    get:
+      tags:
+        - Заказы
+      summary: Информация по заказу
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      type: integer
+                  done:
+                    type: boolean
+        '404':
+          description: Заказ не найден
+  /orders/{order_id}/done:
+    post:
+      tags:
+        - Заказы
+      summary: Пометить заказ как выполненный
+      description: Данный метод защищен ключом. Приготовить можно только заказы в статусе `done` = false.
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: X-Auth-Key
+          schema:
+            type: string
+          required: true
+      responses:
+        '204':
+          description: Успешно
+        '400':
+          description: Заказ уже помечен как выполненный
+        '404':
+          description: Заказ не найден
