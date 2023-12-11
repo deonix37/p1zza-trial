@@ -25,6 +25,10 @@ class Router
                 continue;
             }
 
+            if ($method == 'OPTIONS') {
+                return;
+            }
+
             if (!($controller = $routeGroup[$method] ?? null)) {
                 http_response_code(405);
                 return;
