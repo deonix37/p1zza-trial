@@ -17,7 +17,7 @@ class Order
         $stmt = DB::$conn->prepare($sql);
 
         if (!is_null($done)) {
-            $stmt->bindParam('done', $done);
+            $stmt->bindParam('done', $done, \PDO::PARAM_BOOL);
         }
 
         $stmt->execute();

@@ -7,16 +7,18 @@ use App\Models\Order;
 
 class OrderListController extends ApiController
 {
+    private array $query = [
+        'done' => null,
+    ];
+
     public function handle(): mixed
     {
-        $done = $_GET['done'] ?? null;
-
         return array_map(function ($order) {
             return [
                 'order_id' => $order['order_id'],
                 'done' => (bool) $order['done'],
             ];
-        }, Order::get($done));
+        }, Order::get($this->query['done']));
     }
 
     protected function validate(): ?string
@@ -27,8 +29,12 @@ class OrderListController extends ApiController
             return 'Invalid auth key';
         }
 
-        if (isset($_GET['done']) && !in_array($_GET['done'], [0, 1])) {
-            return 'Invalid parameter done';
+        if (isset($_GET['done'])) {
+            if (!in_array($_GET['done'], [0, 1])) {
+                return 'Invalid parameter done';
+            }
+
+            $this->query['done'] = (bool) $_GET['done'];
         }
 
         return null;
